@@ -5,23 +5,84 @@
 
     <style type="text/css">
         html { height: 100% }
-        body { height: 100%; margin: 0; padding: 0 }
+        body {
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            font-weight: 300;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .transparent {
+            filter: alpha(opacity=50);
+            opacity: 0.5;
+            zoom: 1;
+        }
+
+        #ride-stats {
+            background-color: #ffffff;
+            padding: 10px 0;
+            position: absolute;
+            right: 0;
+            top: 30px;
+            width: 250px;
+            z-index: 5000;
+        }
+
+        #ride-stats div.ride-stat {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        #ride-stats div.stat-name {
+            color: #777777;
+            font-size: 110%;
+            margin-bottom: 3px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        #ride-stats div.stat span,
+        #ride-stats div.stat-sub span {
+            float: left;
+            width: 33%;
+            text-align: center;
+        }
+
+        #ride-stats div.stat-sub span {
+            font-size: 80%;
+        }
+
+        #ride-stats div.stat-sub {
+            clear: both;
+            margin-bottom: 10px;
+        }
+
         #map_canvas { height: 100% }
+
+        #y-axis {
+            transform: rotate(-90deg);
+            -o-transform: rotate(-90deg);
+            -ms-transform: rotate(-90deg);
+            -moz-transform: rotate(-90deg);
+            -webkit-transform: rotate(-90deg);
+        }
     </style>
 
-    <script type="text/javascript"
-            src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDkj6mIaKSKLxhcGTFFl9Uo8EPJLCMTsVc&sensor=false">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDkj6mIaKSKLxhcGTFFl9Uo8EPJLCMTsVc&sensor=false">
     </script>
     <script type="text/javascript">
         function initialize() {
             var mapOptions = {
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                mapTypeId: google.maps.MapTypeId.TERRAIN
             };
             var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
             var whistlerCoordinates = [
-                {% for lat, long in ride_stream.latlng %}
-                    new google.maps.LatLng({{ lat }}, {{ long }}),
+                {% for point in points %}
+                    new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}),
                 {% endfor %}
             ];
 
@@ -43,8 +104,84 @@
             whistlerPath.setMap(map);
         }
     </script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var altitudePointsOverDistance = [];
+            var altitudePointsOverTime = [];
+
+            var minutes = 0;
+            {% for point in points %}
+                altitudePointsOverDistance.push([{{ point.distance }}, {{ point.altitude }}]);
+                altitudePointsOverTime.push([{{ point.time }} * {{ ratios.seconds_to_minutes }}, {{ point.altitude }}]);
+            {% endfor %}
+
+            var minAltitude = {{ stats.altitude.min }};
+            var maxAltitude = {{ stats.altitude.max }};
+
+            minAltitude -= (minAltitude * .05);
+            if (minAltitude < 0) {
+                minAltitude = 0;
+            }
+
+            maxAltitude += (maxAltitude * .05);
+
+            var options = {
+                colors: [
+                    'rgba(255, 0, 0, 0.6)'
+                ],
+                grid: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)'
+                },
+                series: {
+                    lines: {
+                        fill: true,
+                        fillColor: 'rgba(255, 0, 0, 0.4)',
+                        lineWidth: 2,
+                        show: true
+                    },
+                    points: { show: false }
+                },
+                xaxis: {
+                    min: 0,
+                    max: {{ stats.distance }}
+                },
+                yaxis: {
+                    min: minAltitude,
+                    max: maxAltitude
+                }
+            };
+
+            $.plot($('#graph'), [altitudePointsOverDistance], options);
+        });
+    </script>
 </head>
 <body onload="initialize();">
-    <div id="map_canvas" style="width:100%; height:100%"></div>
+    <div id="container" style="width:100%; height: 100%; position: relative;">
+        <div id="ride-stats" class="transparent">
+            {% for key, stat in stats.items %}
+                <div class="ride-stat">
+                    <div class="stat-name">{{ stat.display }}</div>
+                    <div class="stat">
+                        <span class="min">{{ stat.min|floatformat:1 }} {{ stat.measurement }}</span>
+                        <span class="average">{{ stat.average|floatformat:1 }} {{ stat.measurement }}</span>
+                        <span class="max">{{ stat.max|floatformat:1 }} {{ stat.measurement }}</span>
+                    </div>
+                    <div class="stat-sub">
+                        <span class="min">min</span>
+                        <span class="average">avg</span>
+                        <span class="max">max</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="map_canvas" style="width:100%; height: 100%;"></div>
+
+        <div id="graph-container" style="height: 230px; position: absolute; bottom: 0; width: 100%;">
+{#            <div id="y-axis" style="float: left;">Altitude (ft)</div>#}
+            <div id="graph" style="height: 200px; margin-left: auto; margin-right: auto; width: 90%;"></div>
+            <div id="x-axis" style="text-align: center; width: 100%;">Distance (mi)</div>
+        </div>
+    </div>
 </body>
 </html>
