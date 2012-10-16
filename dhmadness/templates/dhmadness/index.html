@@ -130,7 +130,8 @@
                     'rgba(255, 0, 0, 0.6)'
                 ],
                 grid: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.5)'
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                    hoverable: true
                 },
                 series: {
                     lines: {
@@ -143,7 +144,7 @@
                 },
                 xaxis: {
                     min: 0,
-                    max: {{ stats.distance }}
+                    max: {{ ride_distance }}
                 },
                 yaxis: {
                     min: minAltitude,
@@ -151,7 +152,15 @@
                 }
             };
 
-            $.plot($('#graph'), [altitudePointsOverDistance], options);
+            var plot = $.plot($('#graph'), [altitudePointsOverDistance], options);
+
+            var minAltitude = {{ stats.altitude.min }};
+            var maxAltitude = {{ stats.altitude.max }};
+
+            $('#graph').bind('plothover', function(event, pos, item) {
+                if (item) {
+                }
+            });
         });
     </script>
 </head>

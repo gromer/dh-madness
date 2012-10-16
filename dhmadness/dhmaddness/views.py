@@ -76,7 +76,7 @@ def index(request, ride_id=None):
     stats['velocity_smooth']['average'] *= METERS_PER_SECOND_TO_MILES_PER_HOUR_RATIO
     stats['velocity_smooth']['max'] *= METERS_PER_SECOND_TO_MILES_PER_HOUR_RATIO
 
-    stats['distance'] = max(distances) * METERS_TO_MILES_RATIO
+    ride_distance = max(distances) * METERS_TO_MILES_RATIO
 
     context = RequestContext(request)
     return render_to_response('dhmadness/index.html',
@@ -85,7 +85,8 @@ def index(request, ride_id=None):
             'stats': stats,
             'ratios': {
                 'seconds_to_minutes': SECONDS_TO_MINUTES_RATIO,
-            }
+            },
+            'ride_distance': ride_distance
         },
         context_instance=context)
 
