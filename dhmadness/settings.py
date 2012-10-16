@@ -1,3 +1,4 @@
+import os
 import dj_database_url
 
 DEBUG = True
@@ -10,6 +11,8 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = { 'default': dj_database_url.config(default='postgres://localhost') }
+
+ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -34,14 +37,14 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = os.path.join(ROOT_PATH, 'site_media')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+# trailing slash if there is a path component (optional in other cases).
+# Examples: "http://media.lawrence.com", "http://example.com/media/"
+MEDIA_URL = '/site_media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -94,9 +97,7 @@ ROOT_URLCONF = 'dhmadness.urls'
 WSGI_APPLICATION = 'dhmadness.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(ROOT_PATH,'templates'),
 )
 
 INSTALLED_APPS = (
@@ -110,6 +111,9 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+
+    #'sentry',
+    'dhmadness',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -140,3 +144,6 @@ LOGGING = {
         },
     }
 }
+
+
+STRAVA_TOKEN = 'd1ad2ada279d16827025'
