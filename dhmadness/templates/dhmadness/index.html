@@ -80,28 +80,46 @@
             };
             var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-            var whistlerCoordinates = [
+            var rideCoordinates = [
                 {% for point in points %}
                     new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}),
                 {% endfor %}
             ];
 
             var latLongBounds = new google.maps.LatLngBounds();
-            for (var i = 0; i < whistlerCoordinates.length; ++i) {
-                var c = whistlerCoordinates[i];
+            for (var i = 0; i < rideCoordinates.length; ++i) {
+                var c = rideCoordinates[i];
                 latLongBounds.extend(c);
             }
 
             map.fitBounds(latLongBounds);
 
             var whistlerPath = new google.maps.Polyline({
-                path: whistlerCoordinates,
+                path: rideCoordinates,
                 strokeColor: "#FF0000",
                 strokeOpacity: 0.7,
                 strokeWeight: 2
             });
 
             whistlerPath.setMap(map);
+
+            if (rideCoordinates && rideCoordinates.length > 0) {
+                var startPoint = rideCoordinates[0];
+                var finishPoint = rideCoordinates[rideCoordinates.length - 1];
+
+                var startPointMarker = new google.maps.Marker({
+                    icon: '{{ MEDIA_URL }}images/start-race-2.png',
+                    position: startPoint,
+                    map: map,
+                    title: 'Start'
+                });
+                var finishPointMarker = new google.maps.Marker({
+                    icon: '{{ MEDIA_URL }}images/finish.png',
+                    position: finishPoint,
+                    map: map,
+                    title: 'Finish'
+                });
+            }
         }
     </script>
     <script type="text/javascript">
