@@ -74,6 +74,10 @@
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&sensor=false"></script>
 
 <script type="text/javascript">
+    var burntOrange = [];
+    burntOrange[.4] = 'rgba(203, 96, 21, 0.4)';
+    burntOrange[.7] = 'rgba(203, 96, 21, 0.7)';
+
     var pointsData = {
         points: [],
         googlePoints: []
@@ -105,12 +109,6 @@
         };
         map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-    {#            var rideCoordinates = [#}
-    {#                {% for point in points %}#}
-    {#                    new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}),#}
-    {#                {% endfor %}#}
-    {#            ];#}
-
         var latLongBounds = new google.maps.LatLngBounds();
         for (var i = 0; i < pointsData.googlePoints.length; ++i) {
             latLongBounds.extend(pointsData.googlePoints[i]);
@@ -120,7 +118,7 @@
 
         var path = new google.maps.Polyline({
             path: pointsData.googlePoints,
-            strokeColor: "#FF0000",
+            strokeColor: 'rgb(203, 96, 21)',
             strokeOpacity: 0.7,
             strokeWeight: 3
         });
@@ -132,13 +130,13 @@
             var finishPoint = pointsData.googlePoints[pointsData.googlePoints.length - 1];
 
             var startPointMarker = new google.maps.Marker({
-                icon: '{{ MEDIA_URL }}images/start-race-2.png',
+                icon: '{{ MEDIA_URL }}images/markers/201_94_22/start-race-8.png',
                 position: startPoint,
                 map: map,
                 title: 'Start'
             });
             var finishPointMarker = new google.maps.Marker({
-                icon: '{{ MEDIA_URL }}images/finish.png',
+                icon: '{{ MEDIA_URL }}images/markers/201_94_22/finish_8.png',
                 position: finishPoint,
                 map: map,
                 title: 'Finish'
@@ -153,6 +151,7 @@
                 title: 'Min Altitude'
             });
             var maxAltitudeMarker = new google.maps.Marker({
+                icon: '{{ MEDIA_URL }}images/markers/201_94_22/mountains.png',
                 position: maxAltitudeLatLng,
                 map: map,
                 title: 'Max Altitude'
@@ -162,6 +161,13 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
+        $('.transparent').hover(function() {
+            $(this).fadeTo(400, 0.7);
+        },
+        function() {
+            $(this).fadeTo(400, 0.5);
+        });
+
         var altitudePointsOverDistance = [];
 
         var minutes = 0;
@@ -182,7 +188,7 @@
 
         var options = {
             colors: [
-                'rgba(255, 0, 0, 0.7)'
+                burntOrange[.7]
             ],
             crosshair: { mode: "x" },
             grid: {
@@ -192,7 +198,7 @@
             series: {
                 lines: {
                     fill: true,
-                    fillColor: 'rgba(255, 0, 0, 0.4)',
+                    fillColor: burntOrange[.4],
                     lineWidth: 3,
                     show: true
                 },
@@ -241,8 +247,10 @@
             var pointIndex = Math.round(magicRatio * numberOfDataPoints);
             var mouseOverLatLng = pointsData.googlePoints[pointIndex];
 
+
             if (mouseOverMarker == null) {
                 mouseOverMarker = new google.maps.Marker({
+                    icon: '{{ MEDIA_URL }}images/markers/201_94_22/bike_downhill_8.png',
                     position: mouseOverLatLng,
                     map: map,
                     title: 'Current Location'
