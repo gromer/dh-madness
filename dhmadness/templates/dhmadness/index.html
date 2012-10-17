@@ -142,14 +142,16 @@
                 title: 'Finish'
             });
 
-            var minAltitudeLatLng = new google.maps.LatLng({{ stats.altitude.min_lat_lng.0 }}, {{ stats.altitude.min_lat_lng.1 }});
+            {# TODO: Get a good min altitude icon. #}
+{#            var minAltitudeLatLng = new google.maps.LatLng({{ stats.altitude.min_lat_lng.0 }}, {{ stats.altitude.min_lat_lng.1 }});#}
             var maxAltitudeLatLng = new google.maps.LatLng({{ stats.altitude.max_lat_lng.0 }}, {{ stats.altitude.max_lat_lng.1 }});
 
-            var minAltitudeMarker = new google.maps.Marker({
-                position: minAltitudeLatLng,
-                map: map,
-                title: 'Min Altitude'
-            });
+{#            var minAltitudeMarker = new google.maps.Marker({#}
+{#                icon: '{{ MEDIA_URL }}images/markers/201_94_22/canyon.png',#}
+{#                position: minAltitudeLatLng,#}
+{#                map: map,#}
+{#                title: 'Min Altitude'#}
+{#            });#}
             var maxAltitudeMarker = new google.maps.Marker({
                 icon: '{{ MEDIA_URL }}images/markers/201_94_22/mountains.png',
                 position: maxAltitudeLatLng,
