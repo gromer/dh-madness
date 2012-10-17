@@ -1,214 +1,293 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+<title></title>
 
-    <style type="text/css">
-        html { height: 100% }
-        body {
-            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-            font-weight: 300;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
+<style type="text/css">
+    html { height: 100% }
+    body {
+        font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-weight: 300;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
 
-        .transparent {
-            filter: alpha(opacity=50);
-            opacity: 0.5;
-            zoom: 1;
-        }
+    .transparent {
+        filter: alpha(opacity=50);
+        opacity: 0.5;
+        zoom: 1;
+    }
 
-        #ride-stats {
-            background-color: #ffffff;
-            padding: 10px 0;
-            position: absolute;
-            right: 0;
-            top: 30px;
-            width: 250px;
-            z-index: 5000;
-        }
+    #ride-stats {
+        background-color: #ffffff;
+        padding: 10px 0;
+        position: absolute;
+        right: 0;
+        top: 30px;
+        width: 250px;
+        z-index: 5000;
+    }
 
-        #ride-stats div.ride-stat {
-            height: 60px;
-            margin-bottom: 10px;
-        }
+    #ride-stats div.ride-stat {
+        height: 60px;
+        margin-bottom: 10px;
+    }
 
-        #ride-stats div.stat-name {
-            color: #777777;
-            font-size: 110%;
-            margin-bottom: 3px;
-            text-align: center;
-            width: 100%;
-        }
-        
-        #ride-stats div.stat span,
-        #ride-stats div.stat-sub span {
-            float: left;
-            width: 33%;
-            text-align: center;
-        }
+    #ride-stats div.stat-name {
+        color: #777777;
+        font-size: 110%;
+        margin-bottom: 3px;
+        text-align: center;
+        width: 100%;
+    }
 
-        #ride-stats div.stat-sub span {
-            font-size: 80%;
-        }
+    #ride-stats div.stat span,
+    #ride-stats div.stat-sub span {
+        float: left;
+        width: 33%;
+        text-align: center;
+    }
 
-        #ride-stats div.stat-sub {
-            clear: both;
-            margin-bottom: 10px;
-        }
+    #ride-stats div.stat-sub span {
+        font-size: 80%;
+    }
 
-        #map_canvas { height: 100% }
+    #ride-stats div.stat-sub {
+        clear: both;
+        margin-bottom: 10px;
+    }
 
-        #y-axis {
-            transform: rotate(-90deg);
-            -o-transform: rotate(-90deg);
-            -ms-transform: rotate(-90deg);
-            -moz-transform: rotate(-90deg);
-            -webkit-transform: rotate(-90deg);
-        }
-    </style>
+    #map_canvas { height: 100% }
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
-    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDkj6mIaKSKLxhcGTFFl9Uo8EPJLCMTsVc&sensor=false">
-    </script>
-    <script type="text/javascript">
-        function initialize() {
-            var mapOptions = {
-                mapTypeId: google.maps.MapTypeId.TERRAIN
-            };
-            var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+    #y-axis {
+        transform: rotate(-90deg);
+        -o-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+        -moz-transform: rotate(-90deg);
+        -webkit-transform: rotate(-90deg);
+    }
+</style>
 
-            var rideCoordinates = [
-                {% for point in points %}
-                    new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}),
-                {% endfor %}
-            ];
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.flot.js"></script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&sensor=false"></script>
 
-            var latLongBounds = new google.maps.LatLngBounds();
-            for (var i = 0; i < rideCoordinates.length; ++i) {
-                var c = rideCoordinates[i];
-                latLongBounds.extend(c);
-            }
+<script type="text/javascript">
+    var pointsData = {
+        points: [],
+        googlePoints: []
+    };
 
-            map.fitBounds(latLongBounds);
-
-            var whistlerPath = new google.maps.Polyline({
-                path: rideCoordinates,
-                strokeColor: "#FF0000",
-                strokeOpacity: 0.7,
-                strokeWeight: 2
-            });
-
-            whistlerPath.setMap(map);
-
-            if (rideCoordinates && rideCoordinates.length > 0) {
-                var startPoint = rideCoordinates[0];
-                var finishPoint = rideCoordinates[rideCoordinates.length - 1];
-
-                var startPointMarker = new google.maps.Marker({
-                    icon: '{{ MEDIA_URL }}images/start-race-2.png',
-                    position: startPoint,
-                    map: map,
-                    title: 'Start'
-                });
-                var finishPointMarker = new google.maps.Marker({
-                    icon: '{{ MEDIA_URL }}images/finish.png',
-                    position: finishPoint,
-                    map: map,
-                    title: 'Finish'
-                });
-            }
-        }
-    </script>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var altitudePointsOverDistance = [];
-            var altitudePointsOverTime = [];
-
-            var minutes = 0;
-            {% for point in points %}
-                altitudePointsOverDistance.push([{{ point.distance }}, {{ point.altitude }}]);
-                altitudePointsOverTime.push([{{ point.time }} * {{ ratios.seconds_to_minutes }}, {{ point.altitude }}]);
-            {% endfor %}
-
-            var minAltitude = {{ stats.altitude.min }};
-            var maxAltitude = {{ stats.altitude.max }};
-
-            minAltitude -= (minAltitude * .05);
-            if (minAltitude < 0) {
-                minAltitude = 0;
-            }
-
-            maxAltitude += (maxAltitude * .05);
-
-            var options = {
-                colors: [
-                    'rgba(255, 0, 0, 0.6)'
-                ],
-                grid: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                    hoverable: true
-                },
-                series: {
-                    lines: {
-                        fill: true,
-                        fillColor: 'rgba(255, 0, 0, 0.4)',
-                        lineWidth: 2,
-                        show: true
-                    },
-                    points: { show: false }
-                },
-                xaxis: {
-                    min: 0,
-                    max: {{ ride_distance }}
-                },
-                yaxis: {
-                    min: minAltitude,
-                    max: maxAltitude
-                }
-            };
-
-            var plot = $.plot($('#graph'), [altitudePointsOverDistance], options);
-
-            var minAltitude = {{ stats.altitude.min }};
-            var maxAltitude = {{ stats.altitude.max }};
-
-            $('#graph').bind('plothover', function(event, pos, item) {
-                if (item) {
-                }
-            });
+    {% for point in points %}
+        pointsData.points.push({
+            altitude: {{ point.altitude }},
+            distance: {{ point.distance }},
+            grade_smooth: {{ point.grade_smooth }},
+            latlng: {
+                lat: {{ point.latlng.0 }},
+                lng: {{ point.latlng.1 }}
+            },
+            moving: {% if point.moving %}true{% else %}false{% endif %},
+            outlier: {% if point.outlier %}true{% else %}false{% endif %},
+            time: {{ point.time }},
+            velocity_smooth: {{ point.velocity_smooth }},
+            watts_calc: {{ point.watts_calc }}
         });
-    </script>
+        pointsData.googlePoints.push(new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}));
+    {% endfor %}
+</script>
+<script type="text/javascript">
+    var map;
+    function initialize() {
+        var mapOptions = {
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+        map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+    {#            var rideCoordinates = [#}
+    {#                {% for point in points %}#}
+    {#                    new google.maps.LatLng({{ point.latlng.0 }}, {{ point.latlng.1 }}),#}
+    {#                {% endfor %}#}
+    {#            ];#}
+
+        var latLongBounds = new google.maps.LatLngBounds();
+        for (var i = 0; i < pointsData.googlePoints.length; ++i) {
+            latLongBounds.extend(pointsData.googlePoints[i]);
+        }
+
+        map.fitBounds(latLongBounds);
+
+        var path = new google.maps.Polyline({
+            path: pointsData.googlePoints,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.7,
+            strokeWeight: 3
+        });
+
+        path.setMap(map);
+
+        if (pointsData.googlePoints && pointsData.googlePoints.length > 0) {
+            var startPoint = pointsData.googlePoints[0];
+            var finishPoint = pointsData.googlePoints[pointsData.googlePoints.length - 1];
+
+            var startPointMarker = new google.maps.Marker({
+                icon: '{{ MEDIA_URL }}images/start-race-2.png',
+                position: startPoint,
+                map: map,
+                title: 'Start'
+            });
+            var finishPointMarker = new google.maps.Marker({
+                icon: '{{ MEDIA_URL }}images/finish.png',
+                position: finishPoint,
+                map: map,
+                title: 'Finish'
+            });
+
+            var minAltitudeLatLng = new google.maps.LatLng({{ stats.altitude.min_lat_lng.0 }}, {{ stats.altitude.min_lat_lng.1 }});
+            var maxAltitudeLatLng = new google.maps.LatLng({{ stats.altitude.max_lat_lng.0 }}, {{ stats.altitude.max_lat_lng.1 }});
+
+            var minAltitudeMarker = new google.maps.Marker({
+                position: minAltitudeLatLng,
+                map: map,
+                title: 'Min Altitude'
+            });
+            var maxAltitudeMarker = new google.maps.Marker({
+                position: maxAltitudeLatLng,
+                map: map,
+                title: 'Max Altitude'
+            });
+        }
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var altitudePointsOverDistance = [];
+
+        var minutes = 0;
+        var minAltitude = {{ stats.altitude.min }};
+        var maxAltitude = {{ stats.altitude.max }};
+
+        minAltitude -= (minAltitude * .05);
+        if (minAltitude < 0) {
+            minAltitude = 0;
+        }
+
+        maxAltitude += (maxAltitude * .05);
+
+        var numberOfDataPoints = pointsData.points.length;
+        for (var i = 0; i < numberOfDataPoints; ++i) {
+            altitudePointsOverDistance.push([pointsData.points[i].distance, pointsData.points[i].altitude ]);
+        }
+
+        var options = {
+            colors: [
+                'rgba(255, 0, 0, 0.7)'
+            ],
+            crosshair: { mode: "x" },
+            grid: {
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                hoverable: true
+            },
+            series: {
+                lines: {
+                    fill: true,
+                    fillColor: 'rgba(255, 0, 0, 0.4)',
+                    lineWidth: 3,
+                    show: true
+                },
+                points: { show: false }
+            },
+            xaxis: {
+                min: 0,
+                max: {{ ride_distance }}
+            },
+            yaxis: {
+                min: minAltitude,
+                max: maxAltitude
+            }
+        };
+
+        var plot = $.plot($('#graph'), [altitudePointsOverDistance], options);
+
+        var plotHoveringTimeout = null;
+        var latestPosition = null;
+        var mouseOverMarker = null;
+
+        function plotHovering() {
+            plotHoveringTimeout = null;
+
+            /*
+                We'll guestimate the index based on mathy stuff.
+
+                Figure out the aspect ratio of the graph canvas and
+                multiply it be the number of of data items in the graph.
+
+                Round and we have the rough index of the index of the
+                corresponding Google points array, where we can get the
+                latlng to position on the map.
+             */
+            var pos = latestPosition;
+            var axes = plot.getAxes();
+            if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+                if (mouseOverMarker) {
+                    mouseOverMarker.setMap(null);
+                    mouseOverMarker = null;
+                }
+                return;
+            }
+
+            var magicRatio = pos.pageX / plot.width();
+            var pointIndex = Math.round(magicRatio * numberOfDataPoints);
+            var mouseOverLatLng = pointsData.googlePoints[pointIndex];
+
+            if (mouseOverMarker == null) {
+                mouseOverMarker = new google.maps.Marker({
+                    position: mouseOverLatLng,
+                    map: map,
+                    title: 'Current Location'
+                });
+            } else {
+                mouseOverMarker.setPosition(mouseOverLatLng);
+            }
+        }
+
+        $('#graph').bind('plothover', function(event, pos, item) {
+            latestPosition = pos;
+            if (!plotHoveringTimeout) {
+                plotHoveringTimeout = window.setTimeout(plotHovering, 50)
+            }
+        });
+    });
+</script>
 </head>
 <body onload="initialize();">
-    <div id="container" style="width:100%; height: 100%; position: relative;">
-        <div id="ride-stats" class="transparent">
-            {% for key, stat in stats.items %}
-                <div class="ride-stat">
-                    <div class="stat-name">{{ stat.display }}</div>
-                    <div class="stat">
-                        <span class="min">{{ stat.min|floatformat:1 }} {{ stat.measurement }}</span>
-                        <span class="average">{{ stat.average|floatformat:1 }} {{ stat.measurement }}</span>
-                        <span class="max">{{ stat.max|floatformat:1 }} {{ stat.measurement }}</span>
-                    </div>
-                    <div class="stat-sub">
-                        <span class="min">min</span>
-                        <span class="average">avg</span>
-                        <span class="max">max</span>
-                    </div>
+<div id="container" style="width:100%; height: 100%; position: relative;">
+    <div id="ride-stats" class="transparent">
+        {% for key, stat in stats.items %}
+            <div class="ride-stat">
+                <div class="stat-name">{{ stat.display }}</div>
+                <div class="stat">
+                    <span class="min">{{ stat.min|floatformat:1 }} {{ stat.measurement }}</span>
+                    <span class="average">{{ stat.average|floatformat:1 }} {{ stat.measurement }}</span>
+                    <span class="max">{{ stat.max|floatformat:1 }} {{ stat.measurement }}</span>
                 </div>
-            {% endfor %}
-        </div>
-
-        <div id="map_canvas" style="width:100%; height: 100%;"></div>
-
-        <div id="graph-container" style="height: 230px; position: absolute; bottom: 0; width: 100%;">
-{#            <div id="y-axis" style="float: left;">Altitude (ft)</div>#}
-            <div id="graph" style="height: 200px; margin-left: auto; margin-right: auto; width: 90%;"></div>
-            <div id="x-axis" style="text-align: center; width: 100%;">Distance (mi)</div>
-        </div>
+                <div class="stat-sub">
+                    <span class="min">min</span>
+                    <span class="average">avg</span>
+                    <span class="max">max</span>
+                </div>
+            </div>
+        {% endfor %}
     </div>
+
+    <div id="map_canvas" style="width:100%; height: 100%;"></div>
+
+    <div id="graph-container" style="height: 230px; position: absolute; bottom: 0; width: 100%;">
+        {#            <div id="y-axis" style="float: left;">Altitude (ft)</div>#}
+        <div id="graph" style="height: 200px; margin-left: auto; margin-right: auto; width: 90%;"></div>
+        <div id="x-axis" style="text-align: center; width: 100%;">Distance (mi)</div>
+    </div>
+</div>
 </body>
 </html>

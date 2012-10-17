@@ -69,6 +69,13 @@ def index(request, ride_id=None):
         'watts_calc': get_stats(watts_calcs, 'w', 'Power'),
     }
 
+    stats['altitude']['min_lat_lng'] = latlngs[stats['altitude']['min_index']]
+    print stats['altitude']['min_lat_lng']
+    stats['altitude']['max_lat_lng'] = latlngs[stats['altitude']['max_index']]
+    print stats['altitude']['max_lat_lng']
+    stats['velocity_smooth']['min_lat_lng'] = latlngs[stats['velocity_smooth']['min_index']]
+    stats['velocity_smooth']['max_lat_lng'] = latlngs[stats['velocity_smooth']['max_index']]
+
     stats['altitude']['min'] *= METERS_TO_FEET_RATIO
     stats['altitude']['average'] *= METERS_TO_FEET_RATIO
     stats['altitude']['max'] *= METERS_TO_FEET_RATIO
@@ -96,13 +103,19 @@ def get_stats(collection, measurement, display):
         return {'average': 0, 'min': 0, 'max': 0, 'measurement': '', 'display': ''}
 
     average_value = sum(collection) / len(collection)
+
     min_value = min(collection)
+    min_index = collection.index(min_value)
+
     max_value = max(collection)
+    max_index = collection.index(max_value)
 
     return {
         'average': average_value,
         'min': min_value,
+        'min_index': min_index,
         'max': max_value,
+        'max_index': max_index,
         'measurement': measurement,
         'display': display
     }
