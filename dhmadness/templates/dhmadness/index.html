@@ -78,6 +78,8 @@
     burntOrange[.4] = 'rgba(203, 96, 21, 0.4)';
     burntOrange[.7] = 'rgba(203, 96, 21, 0.7)';
 
+    var bikeMarkerIconName = '{{ MEDIA_URL }}images/markers/201_94_22/bike_downhill_8.png';
+
     var pointsData = {
         points: [],
         googlePoints: []
@@ -252,7 +254,7 @@
 
             if (mouseOverMarker == null) {
                 mouseOverMarker = new google.maps.Marker({
-                    icon: '{{ MEDIA_URL }}images/markers/201_94_22/bike_downhill_8.png',
+                    icon: bikeMarkerIconName,
                     position: mouseOverLatLng,
                     map: map,
                     title: 'Current Location'

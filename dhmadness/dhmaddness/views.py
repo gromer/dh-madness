@@ -70,9 +70,7 @@ def index(request, ride_id=None):
     }
 
     stats['altitude']['min_lat_lng'] = latlngs[stats['altitude']['min_index']]
-    print stats['altitude']['min_lat_lng']
     stats['altitude']['max_lat_lng'] = latlngs[stats['altitude']['max_index']]
-    print stats['altitude']['max_lat_lng']
     stats['velocity_smooth']['min_lat_lng'] = latlngs[stats['velocity_smooth']['min_index']]
     stats['velocity_smooth']['max_lat_lng'] = latlngs[stats['velocity_smooth']['max_index']]
 
