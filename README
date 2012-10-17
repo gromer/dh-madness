@@ -1,4 +1,5 @@
 Map icons from : http://mapicons.nicolasmollet.com/
 
-Graph doesn't resize yet.
-No min altitude icon.
+* Graph doesn't resize yet.
+* No min altitude icon.
+* Need to switch in different icon for the start & finish for loops.
